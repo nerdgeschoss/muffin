@@ -1,14 +1,14 @@
 module Muffin
   module Execution
     def call
-      call!
-      true
-    rescue
-      false
+      return false unless valid?
+      permit!
+      perform if respond_to? :perform
     end
 
     def call!
       validate!
+      permit!
       perform if respond_to? :perform
     end
   end

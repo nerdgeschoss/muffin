@@ -1,5 +1,6 @@
 require_relative "../attribute"
 require_relative "../boolean"
+require_relative "policy"
 
 module Muffin
   module Attributes
@@ -12,7 +13,8 @@ module Muffin
         end
         define_method "#{name}=" do |value|
           @attributes ||= {}
-          attributes[name] = self.class.attributes[name].coercise(value)
+          value = self.class.attributes[name].coercise(value)
+          attributes[name] = value if permit_attribute!(name, value)
         end
       end
 
@@ -56,6 +58,7 @@ module Muffin
 
   class NestedAttribute
     include Attributes
+    include Policy
 
     def initialize(attributes)
       self.attributes = attributes

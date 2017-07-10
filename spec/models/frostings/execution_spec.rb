@@ -1,6 +1,6 @@
 RSpec.describe Muffin::Execution do
   context "with a simple form" do
-    class SimpleForm < Muffin::Base
+    class ExecutionForm < Muffin::Base
       attr_reader :performed
 
       def perform
@@ -9,7 +9,7 @@ RSpec.describe Muffin::Execution do
     end
 
     it "calls perform on call" do
-      form = SimpleForm.new
+      form = ExecutionForm.new
       expect(form.performed).to be_falsy
       form.call
       expect(form.performed).to eq true
@@ -17,7 +17,7 @@ RSpec.describe Muffin::Execution do
   end
 
   context "with validation" do
-    class ValidatedForm < Muffin::Base
+    class ValidatedExecutionForm < Muffin::Base
       attr_reader :performed
       attribute :name
 
@@ -29,7 +29,7 @@ RSpec.describe Muffin::Execution do
     end
 
     it "performes after validation" do
-      form = ValidatedForm.new
+      form = ValidatedExecutionForm.new
       expect(form.call).to be_falsy
       expect(form.performed).to be_falsy
       form.name = "Klaus"
@@ -38,11 +38,11 @@ RSpec.describe Muffin::Execution do
     end
 
     it "raises on call!" do
-      expect { ValidatedForm.new.call! }.to raise_error(ActiveModel::ValidationError)
+      expect { ValidatedExecutionForm.new.call! }.to raise_error(ActiveModel::ValidationError)
     end
 
     it "calls perform on call!" do
-      form = ValidatedForm.new params: { name: "Klaus" }
+      form = ValidatedExecutionForm.new params: { name: "Klaus" }
       form.call!
       expect(form.performed).to eq true
     end
