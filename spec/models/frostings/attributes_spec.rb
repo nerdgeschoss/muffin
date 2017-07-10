@@ -118,7 +118,7 @@ RSpec.describe Muffin::Attributes do
   end
 
   context "with custom attribute assignment" do
-    class Form < Muffin::Base
+    class CustomForm < Muffin::Base
       attr_reader :assign_called
       attribute :name
 
@@ -128,7 +128,7 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "overrides the assign call" do
-      form = Form.new params: { name: "Klaus" }
+      form = CustomForm.new params: { name: "Klaus" }
       expect(form.assign_called).to eq true
       expect(form.name).to be_nil
     end
@@ -143,19 +143,23 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "sets array by default" do
-      expect(SimpleForm.introspect(:children).array?).to eq true
+      expect(NestedForm.introspect(:children).array?).to eq true
+    end
+
+    it "creates subclasses for nested attributes" do
+      expect(NestedForm::Children.introspect(:age).type).to eq Integer
     end
 
     it "assigns nested values" do
-      expect(SimpleForm.new(params: { children: [name: "Hans"] }).children.first.name).to eq "Hans"
+      expect(NestedForm.new(params: { children: [name: "Hans"] }).children.first.name).to eq "Hans"
     end
 
     it "supports default values" do
-      expect(SimpleForm.new.children.first.name).to eq "Klaus"
+      expect(NestedForm.new.children.first.name).to eq "Klaus"
     end
 
     it "does type coecision on nested values" do
-      expect(SimpleForm.new(params: { children: [age: "15"] }).children.first.age).to eq 15
+      expect(NestedForm.new(params: { children: [age: "15"] }).children.first.age).to eq 15
     end
   end
 end
