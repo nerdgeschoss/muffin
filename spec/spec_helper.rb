@@ -14,4 +14,6 @@ RSpec.configure do |config|
   end
 
   config.default_formatter = "doc" if config.files_to_run.one?
+  config.filter_run focus: true
+  config.run_all_when_everything_filtered = true
 end

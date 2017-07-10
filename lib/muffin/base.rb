@@ -10,7 +10,14 @@ module Muffin
     include Execution
     include Policy
 
+    attr_reader :request, :params, :scope
+
     def initialize(request: nil, params: nil, scope: nil)
+      @request = request
+      @params = params || {}
+      @scope = scope
+
+      assign_attributes
     end
   end
 end

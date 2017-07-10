@@ -3,13 +3,14 @@ RSpec.describe Muffin::Attributes do
     class Nested
       attr_accessor :name
 
-      def initialize(name:)
+      def initialize(name: nil)
         self.name = name
       end
     end
 
     class SimpleForm < Muffin::Base
       attribute :count, Integer
+      attribute :amount, Float
       attribute :name, String
       attribute :description
       attribute :accepted?, Boolean
@@ -20,14 +21,27 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "has type coercision for integers" do
+      expect(SimpleForm.new(params: { count: "5" }).count).to be_an Integer
       expect(SimpleForm.new(params: { count: "5" }).count).to eq 5
       expect(SimpleForm.new(params: { count: nil }).count).to be_nil
-      expect(SimpleForm.new(params: { count: "z" }).count).to be_nil
+      expect(SimpleForm.new(params: { count: "" }).count).to eq 0
+      expect(SimpleForm.new(params: { count: "z" }).count).to eq 0
       expect(SimpleForm.new(params: { count: "15z" }).count).to eq 15
       expect(SimpleForm.new(params: { count: 5 }).count).to eq 5
     end
 
+    it "has type coercision for floats" do
+      expect(SimpleForm.new(params: { amount: "5" }).amount).to be_a Float
+      expect(SimpleForm.new(params: { amount: "5" }).amount).to eq 5.0
+      expect(SimpleForm.new(params: { amount: "5.1" }).amount).to eq 5.1
+      expect(SimpleForm.new(params: { amount: nil }).amount).to be_nil
+      expect(SimpleForm.new(params: { amount: "z" }).amount).to eq 0.0
+      expect(SimpleForm.new(params: { amount: "15.0z" }).amount).to eq 15.0
+      expect(SimpleForm.new(params: { amount: 5 }).amount).to eq 5.0
+    end
+
     it "has type coercision for strings" do
+      expect(SimpleForm.new(params: { name: "Klaus" }).name).to be_a String
       expect(SimpleForm.new(params: { name: "Klaus" }).name).to eq "Klaus"
       expect(SimpleForm.new(params: { name: 5 }).name).to eq "5"
       expect(SimpleForm.new(params: { name: :klaus }).name).to eq "klaus"
@@ -47,13 +61,13 @@ RSpec.describe Muffin::Attributes do
 
     it "has type coercision for value classes" do
       expect(SimpleForm.new(params: { nested: { name: "Klaus" } }).nested).to be_a Nested
-      expect(SimpleForm.new(params: { nested: { name: "Klaus" } }).name).to eq "Klaus"
+      expect(SimpleForm.new(params: { nested: { name: "Klaus" } }).nested.name).to eq "Klaus"
     end
 
     it "respects defaults" do
       expect(SimpleForm.new(params: { with_default: "Klaus" }).with_default).to eq "Klaus"
-      expect(SimpleForm.new(params: { with_default: "" }).with_default).to eq "standard"
-      expect(SimpleForm.new(params: { with_default: " " }).with_default).to eq "standard"
+      expect(SimpleForm.new(params: { with_default: "" }).with_default).to eq ""
+      expect(SimpleForm.new(params: { with_default: " " }).with_default).to eq " "
       expect(SimpleForm.new(params: { with_default: nil }).with_default).to eq "standard"
     end
 
@@ -65,7 +79,7 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "has implicit arrays" do
-      expect(SimpleForm.new(params: { categories: [1] })).to eq ["1"]
+      expect(SimpleForm.new(params: { categories: [1] }).categories).to eq ["1"]
     end
 
     it "keeps track of assigned attributes" do
@@ -75,6 +89,8 @@ RSpec.describe Muffin::Attributes do
       expect(form.attributes).to include(count: nil)
       form.attributes = { count: "2" }
       expect(form.attributes).to include(count: 2)
+      form.count = 3
+      expect(form.attributes).to include(count: 3)
     end
 
     it "has introspection for fields" do
@@ -96,7 +112,25 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "assigns the request" do
-      expect(SimpleForm.new(request: OpenStruct.new(ip: "0.0.0.0")).request.ip).to eq "0.0.0.0"
+      Request = Struct.new(:ip)
+      expect(SimpleForm.new(request: Request.new("0.0.0.0")).request.ip).to eq "0.0.0.0"
+    end
+  end
+
+  context "with custom attribute assignment" do
+    class Form < Muffin::Base
+      attr_reader :assign_called
+      attribute :name
+
+      def assign_attributes
+        @assign_called = true
+      end
+    end
+
+    it "overrides the assign call" do
+      form = Form.new params: { name: "Klaus" }
+      expect(form.assign_called).to eq true
+      expect(form.name).to be_nil
     end
   end
 
