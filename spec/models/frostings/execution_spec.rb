@@ -10,7 +10,7 @@ RSpec.describe Muffin::Execution do
 
     it "calls perform on call" do
       form = SimpleForm.new
-      expect(form.performed).to eq false
+      expect(form.performed).to be_falsy
       form.call
       expect(form.performed).to eq true
     end
@@ -29,20 +29,20 @@ RSpec.describe Muffin::Execution do
     end
 
     it "performes after validation" do
-      form = SimpleForm.new
-      expect(form.call).to eq false
-      expect(form.performed).to eq false
+      form = ValidatedForm.new
+      expect(form.call).to be_falsy
+      expect(form.performed).to be_falsy
       form.name = "Klaus"
       expect(form.call).to eq true
       expect(form.performed).to eq true
     end
 
     it "raises on call!" do
-      expect { SimpleForm.new.call! }.to raise
+      expect { ValidatedForm.new.call! }.to raise_error(ActiveModel::ValidationError)
     end
 
     it "calls perform on call!" do
-      form = SimpleForm.new params: { name: "Klaus" }
+      form = ValidatedForm.new params: { name: "Klaus" }
       form.call!
       expect(form.performed).to eq true
     end
