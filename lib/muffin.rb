@@ -1,5 +1,5 @@
 require "muffin/version"
+require "muffin/base"
 
 module Muffin
-  # Your code goes here...
 end
