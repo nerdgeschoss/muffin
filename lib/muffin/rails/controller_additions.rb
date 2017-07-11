@@ -1,11 +1,13 @@
 module Muffin
   module Rails
+    SCOPE_ACCESSOR = :operation_auth_scope
+
     module ControllerAdditions
-      def prepare(operation, options = {})
-        if !options[:params] && !options["params"] && respond_to?(:params) && operation.respond_to?(:model_name)
-          if params.has_key?(operation.model_name.underscore)
-            options["params"] = params[operation.model_name.underscore].deep_dup.permit!.to_h
-            options["params"].deep_transform_keys! do |key|
+      def prepare(operation, params: nil, request: nil, scope: nil)
+        if params.blank? && respond_to?(:params) && operation.respond_to?(:model_name)
+          if self.params.key?(operation.model_name.underscore)
+            params = self.params[operation.model_name.underscore].deep_dup.permit!.to_h
+            params.deep_transform_keys! do |key|
               if key.to_s[/.+_attributes\Z/]
                 new_key = key.to_s.sub(/_attributes\Z/, "")
                 key.is_a?(Symbol) ? new_key.to_sym : new_key
@@ -16,10 +18,19 @@ module Muffin
           end
         end
 
-        options["request"] = request if !options[:request] && !options["request"] && respond_to?(:request)
-        options["scope"] = current_user if !options[:user] && !options["user"] && respond_to?(:current_user)
+        request = self.request if request.blank? && respond_to?(:request)
 
-        operation.new(options)
+        if scope.blank?
+          scope = begin
+            if respond_to?(Muffin::Rails::SCOPE_ACCESSOR)
+              send(Muffin::Rails::SCOPE_ACCESSOR)
+            elsif respond_to?(:current_user)
+              current_user
+            end
+          end
+        end
+
+        operation.new(params: params, request: request, scope: scope)
       end
     end
   end

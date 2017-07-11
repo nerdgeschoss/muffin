@@ -32,15 +32,28 @@ RSpec.describe Muffin::Rails::ControllerAdditions do
         expect(instance).to respond_to(:prepare).with(1).argument
       end
 
-      it "takes a hash as an optional argument" do
-        expect(instance).to respond_to(:prepare).with(2).arguments
+      it "takes :params as an option keyword argument" do
+        expect(instance).to respond_to(:prepare).with(1).and_keywords(:params)
+      end
+
+      it "takes :request as an option keyword argument" do
+        expect(instance).to respond_to(:prepare).with(1).and_keywords(:request)
+      end
+
+      it "takes :scope as an option keyword argument" do
+        expect(instance).to respond_to(:prepare).with(1).and_keywords(:scope)
       end
 
       context "if params are not given" do
         context "if the including context responds to :params" do
-          let(:klass) { Class.new { include Muffin::Rails::ControllerAdditions; attr_accessor :params, :model_name } }
+          let(:klass) do
+            Class.new do
+              include Muffin::Rails::ControllerAdditions
+              attr_accessor :params
+            end
+          end
           let(:params) do
-            ActionController::Parameters.new({
+            ActionController::Parameters.new(
               book_cover: {
                 name: "foo",
                 image: "http://bar.jpg",
@@ -52,18 +65,23 @@ RSpec.describe Muffin::Rails::ControllerAdditions do
               some_other_param: {
                 some_value: "foo"
               }
-            })
+            )
           end
-
           let(:instance) { klass.new.tap { |e| e.params = params } }
 
           context "if the operation class responds to :model_name" do
-            let(:operation) { Class.new(mock_operation) { def self.model_name; "BookCover"; end } }
+            let(:operation) do
+              Class.new(mock_operation) do
+                def self.model_name
+                  "BookCover"
+                end
+              end
+            end
 
             it "interfers the params" do
-              expect(operation_instance.params).to include("name"=>"foo", "image"=>"http://bar.jpg")
-              expect(operation_instance.params["authors"]).to include("first_name"=>"Max", "last_name"=>"Mustermann")
-              expect(operation_instance.params["authors"]).to include("first_name"=>"Sabine", "last_name"=>"Musterfrau")
+              expect(operation_instance.params).to include("name" => "foo", "image" => "http://bar.jpg")
+              expect(operation_instance.params["authors"]).to include("first_name" => "Max", "last_name" => "Mustermann")
+              expect(operation_instance.params["authors"]).to include("first_name" => "Sabine", "last_name" => "Musterfrau")
             end
           end
 
@@ -84,7 +102,12 @@ RSpec.describe Muffin::Rails::ControllerAdditions do
       context "if request is not given" do
         context "if the including context responds to :request" do
           let(:request) { Object.new }
-          let(:klass) { Class.new { include Muffin::Rails::ControllerAdditions; attr_accessor :request } }
+          let(:klass) do
+            Class.new do
+              include Muffin::Rails::ControllerAdditions
+              attr_accessor :request
+            end
+          end
           let(:instance) { klass.new.tap { |e| e.request = request } }
 
           it "is used as the request" do
@@ -100,9 +123,29 @@ RSpec.describe Muffin::Rails::ControllerAdditions do
       end
 
       context "if scope is not given" do
+        context "if the including context responds to Muffin::Rails::SCOPE_ACCESSOR" do
+          let(:scope) { Object.new }
+          let(:klass) do
+            Class.new do
+              include Muffin::Rails::ControllerAdditions
+              attr_accessor Muffin::Rails::SCOPE_ACCESSOR.to_sym
+            end
+          end
+          let(:instance) { klass.new.tap { |e| e.send("#{Muffin::Rails::SCOPE_ACCESSOR}=", scope) } }
+
+          it "is used as the scope" do
+            expect(operation_instance.scope).to be(scope)
+          end
+        end
+
         context "if the including context responds to :current_user" do
           let(:some_user) { Object.new }
-          let(:klass) { Class.new { include Muffin::Rails::ControllerAdditions; attr_accessor :current_user } }
+          let(:klass) do
+            Class.new do
+              include Muffin::Rails::ControllerAdditions
+              attr_accessor :current_user
+            end
+          end
           let(:instance) { klass.new.tap { |e| e.current_user = some_user } }
 
           it "is used as the scope" do

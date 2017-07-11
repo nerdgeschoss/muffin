@@ -6,17 +6,14 @@ AllCops:
 require:
   - rubocop/rspec/focused
 
-Layout/AlignParameters:
-  EnforcedStyle: with_fixed_indentation
-
-Layout/MultilineMethodCallIndentation:
-  EnforcedStyle: indented
-
 Metrics:
   Enabled: false
 
 RSpec/Focused:
   Enabled: true
+
+Style/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
 
 Style/ConditionalAssignment:
   Enabled: false
@@ -38,6 +35,9 @@ Style/Lambda:
 
 Style/MethodMissing:
   Enabled: false
+
+Style/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
 
 Style/NilComparison:
   Enabled: false

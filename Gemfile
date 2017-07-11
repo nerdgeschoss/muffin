@@ -7,8 +7,8 @@ group :development, :test do
   gem "activesupport"
   gem "bundler"
   gem "guard-rspec"
-  gem "rake"
   gem "rails"
+  gem "rake"
   gem "rspec", "~> 3.0"
   gem "rubocop"
   gem "rubocop-rspec-focused"
@@ -16,7 +16,7 @@ group :development, :test do
   if RUBY_ENGINE == "ruby"
     gem "simplecov" if RUBY_VERSION >= "2.0.0"
 
-    if !ENV["CI"]
+    unless ENV["CI"]
       gem "pry"
 
       if RUBY_VERSION < "2.0.0"
@@ -26,8 +26,8 @@ group :development, :test do
       end
 
       # yard and friends
-      gem "redcarpet"
       gem "github-markup"
+      gem "redcarpet"
       gem "yard"
     end
   end

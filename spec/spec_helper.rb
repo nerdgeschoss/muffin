@@ -5,19 +5,10 @@ require "active_support/core_ext"
 require "muffin"
 
 if RUBY_ENGINE == "ruby"
-  if ENV["CI"]
-    # CI stuff
-  else
-    begin
-      require "pry"
-    rescue LoadError
-    end
-
-    begin
-      require "simplecov"
-      SimpleCov.start
-    rescue LoadError
-    end
+  unless ENV["CI"]
+    require "pry"
+    require "simplecov"
+    SimpleCov.start
   end
 end
 
