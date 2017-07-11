@@ -1,8 +1,22 @@
 require "bundler/setup"
-Bundler.require
-require "byebug"
-
 require "muffin"
+
+if RUBY_ENGINE == "ruby"
+  if ENV["CI"]
+    # CI stuff
+  else
+    begin
+      require "pry"
+    rescue LoadError
+    end
+
+    begin
+      require "simplecov"
+      SimpleCov.start
+    rescue LoadError
+    end
+  end
+end
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
