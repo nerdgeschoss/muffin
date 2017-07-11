@@ -2,9 +2,6 @@ module Muffin
   module Rails
     module ControllerAdditions
       def prepare(operation, options = {})
-        options["scope"] = current_user if !options[:user] && !options["user"] && respond_to?(:current_user)
-
-
         if !options[:params] && !options["params"] && respond_to?(:params) && operation.respond_to?(:model_name)
           if params.has_key?(operation.model_name.underscore)
             options["params"] = params[operation.model_name.underscore].deep_dup.permit!.to_h
