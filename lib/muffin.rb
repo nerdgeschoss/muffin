@@ -1,5 +1,6 @@
 require "muffin/version"
-require "muffin/base"
 
 module Muffin
+  require_relative "./muffin/base"
+  require_relative "./muffin/rails/controller_additions"
 end

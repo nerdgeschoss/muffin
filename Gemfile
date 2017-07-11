@@ -4,9 +4,11 @@ source "https://rubygems.org"
 gemspec
 
 group :development, :test do
+  gem "activesupport"
   gem "bundler"
   gem "guard-rspec"
   gem "rake"
+  gem "rails"
   gem "rspec", "~> 3.0"
   gem "rubocop"
   gem "rubocop-rspec-focused"
