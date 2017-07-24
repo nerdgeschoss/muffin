@@ -1,3 +1,5 @@
+require "active_support"
+require "active_support/core_ext"
 require "muffin/version"
 
 module Muffin
