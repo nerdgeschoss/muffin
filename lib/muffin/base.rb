@@ -5,6 +5,8 @@ require_relative "frostings/policy"
 
 module Muffin
   class Base
+    include ActiveModel::Conversion
+    include ActiveModel::Naming
     include Attributes
     include Validation
     include Execution

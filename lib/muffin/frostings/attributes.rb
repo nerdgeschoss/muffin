@@ -53,6 +53,16 @@ module Muffin
       base.extend ClassMethods
     end
 
+    def persisted?
+      attributes[:id].present?
+    end
+
+    # fields_for checks wether an object responds to [foo_attributes=]
+    def respond_to_missing?(method_name, include_private = false)
+      return true if method_name.to_s[/_attributes=\Z/]
+      super
+    end
+
     Boolean = Muffin::Boolean.freeze
   end
 
