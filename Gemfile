@@ -4,6 +4,7 @@ source "https://rubygems.org"
 gemspec
 
 group :development, :test do
+  gem "activerecord"
   gem "bundler"
   gem "guard-rspec"
   gem "rails"
@@ -11,6 +12,7 @@ group :development, :test do
   gem "rspec", "~> 3.0"
   gem "rubocop"
   gem "rubocop-rspec-focused"
+  gem "sqlite3"
 
   if RUBY_ENGINE == "ruby"
     gem "simplecov" if RUBY_VERSION >= "2.0.0"
