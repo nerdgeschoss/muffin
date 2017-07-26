@@ -1,6 +1,7 @@
 require_relative "../attribute"
 require_relative "../boolean"
 require_relative "policy"
+require_relative "validation"
 
 module Muffin
   module Attributes
@@ -69,6 +70,9 @@ module Muffin
   class NestedAttribute
     include Attributes
     include Policy
+    include Validation
+
+    validates_with Muffin::Validation::NestedAttributesValidator
 
     def initialize(attributes)
       self.attributes = attributes
