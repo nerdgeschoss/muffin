@@ -33,6 +33,12 @@ module Muffin
         value&.to_f
       elsif type <= String
         value&.to_s
+      elsif type <= Symbol
+        value.class <= Integer ? value.to_s.to_sym : value&.to_sym
+      elsif type <= BigDecimal
+        type.new(value) if value.present?
+      elsif type <= Hash
+        type.new.merge!(value&.to_h&.deep_dup) if value.present?
       elsif type <= Muffin::Boolean
         type.new(value).to_bool
       else

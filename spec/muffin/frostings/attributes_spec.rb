@@ -18,6 +18,9 @@ RSpec.describe Muffin::Attributes do
       attribute :tags, array: true
       attribute :categories, [String]
       attribute :nested, Nested
+      attribute :total, BigDecimal
+      attribute :symbol, Symbol
+      attribute :hash, Hash
     end
 
     it "has type coercision for integers" do
@@ -62,6 +65,29 @@ RSpec.describe Muffin::Attributes do
     it "has type coercision for value classes" do
       expect(SimpleForm.new(params: { nested: { name: "Klaus" } }).nested).to be_a Nested
       expect(SimpleForm.new(params: { nested: { name: "Klaus" } }).nested.name).to eq "Klaus"
+    end
+
+    it "has type coercision for big decimals" do
+      expect(SimpleForm.new(params: { total: "5" }).total).to be_an BigDecimal
+      expect(SimpleForm.new(params: { total: "5" }).total).to eq(BigDecimal.new(5))
+      expect(SimpleForm.new(params: { total: nil }).total).to be_nil
+      expect(SimpleForm.new(params: { total: "" }).total).to be_nil
+      expect(SimpleForm.new(params: { count: "z" }).count).to eq(BigDecimal.new(0))
+      expect(SimpleForm.new(params: { count: "5z" }).count).to eq(BigDecimal.new(5))
+      expect(SimpleForm.new(params: { count: 5 }).count).to eq(BigDecimal.new(5))
+    end
+
+    it "has type coercision for symbols" do
+      expect(SimpleForm.new(params: { symbol: "foo" }).symbol).to be_an Symbol
+      expect(SimpleForm.new(params: { symbol: "foo" }).symbol).to eq(:foo)
+      expect(SimpleForm.new(params: { symbol: 5 }).symbol).to eq(:"5")
+      expect(SimpleForm.new(params: { symbol: :foo }).symbol).to eq(:foo)
+      expect(SimpleForm.new(params: { symbol: nil }).symbol).to be_nil
+      expect(SimpleForm.new(params: { symbol: "" }).symbol).to eq(:"")
+    end
+
+    it "supports Hash as a type" do
+      expect(SimpleForm.new(params: { hash: { foo: "bar" } }).hash).to eq(foo: "bar")
     end
 
     it "respects defaults" do
