@@ -18,17 +18,9 @@ module Muffin
           end
         end
 
-        request = self.request if request.blank? && respond_to?(:request)
+        request ||= try(:request)
 
-        if scope.blank?
-          scope = begin
-            if respond_to?(Muffin::Rails::SCOPE_ACCESSOR)
-              send(Muffin::Rails::SCOPE_ACCESSOR)
-            elsif respond_to?(:current_user)
-              current_user
-            end
-          end
-        end
+        scope ||= try(Muffin::Rails::SCOPE_ACCESSOR) || try(:current_user)
 
         operation.new(params: params, request: request, scope: scope)
       end
