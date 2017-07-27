@@ -21,6 +21,9 @@ RSpec.describe Muffin::Attributes do
       attribute :total, BigDecimal
       attribute :symbol, Symbol
       attribute :hash, Hash
+      attribute :date, Date
+      attribute :date_time, DateTime
+      attribute :time, Time
     end
 
     it "has type coercision for integers" do
@@ -88,6 +91,30 @@ RSpec.describe Muffin::Attributes do
 
     it "supports Hash as a type" do
       expect(SimpleForm.new(params: { hash: { foo: "bar" } }).hash).to eq(foo: "bar")
+    end
+
+    it "has type coercision for date" do
+      expect(SimpleForm.new(params: { date: "2001-02-03" }).date).to be_a Date
+      expect(SimpleForm.new(params: { date: "2001-02-03" }).date).to eq Date.parse("2001-02-03")
+      expect(SimpleForm.new(params: { date: "" }).date).to eq nil
+      expect(SimpleForm.new(params: { date: nil }).date).to eq nil
+      expect(SimpleForm.new(params: { date: Date.parse("2001-02-03") }).date).to be_a Date
+    end
+
+    it "has type coercision for date_time" do
+      expect(SimpleForm.new(params: { date_time: "2001-02-03T04:05:06" }).date_time).to be_a DateTime
+      expect(SimpleForm.new(params: { date_time: "2001-02-03T04:05:06" }).date_time).to eq DateTime.parse("2001-02-03T04:05:06")
+      expect(SimpleForm.new(params: { date_time: nil }).date_time).to eq nil
+      expect(SimpleForm.new(params: { date_time: "" }).date_time).to eq nil
+      expect(SimpleForm.new(params: { date_time: DateTime.parse("2001-02-03T04:05:06") }).date_time).to be_a DateTime
+    end
+
+    it "has type coercision for time" do
+      expect(SimpleForm.new(params: { time: "2001-02-03T04:05:06" }).time).to be_a Time
+      expect(SimpleForm.new(params: { time: "2001-02-03T04:05:06" }).time).to eq Time.parse("2001-02-03T04:05:06")
+      expect(SimpleForm.new(params: { time: nil }).time).to eq nil
+      expect(SimpleForm.new(params: { time: "" }).time).to eq nil
+      expect(SimpleForm.new(params: { time: Time.parse("2001-02-03T04:05:06") }).time).to be_a Time
     end
 
     it "respects defaults" do

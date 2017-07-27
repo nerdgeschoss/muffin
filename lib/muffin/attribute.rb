@@ -27,7 +27,14 @@ module Muffin
     def convert(value, access_array: false)
       return convert(default) if value == nil && default
       return (value || []).map { |e| convert(e, access_array: true) } if array? && !access_array
-      if type <= Integer
+      return value.deep_dup if value.is_a? type
+      return value if value.nil?
+
+      if type <= DateTime
+        DateTime.parse(value).in_time_zone if value.present?
+      elsif type <= Date # needs to come *after* DateTime because DateTime <= Date
+        Date.parse(value) if value.present?
+      elsif type <= Integer
         value&.to_i
       elsif type <= Float
         value&.to_f
@@ -35,6 +42,8 @@ module Muffin
         value&.to_s
       elsif type <= Symbol
         value.class <= Integer ? value.to_s.to_sym : value&.to_sym
+      elsif type <= Time
+        Time.parse(value).in_time_zone if value.present?
       elsif type <= BigDecimal
         type.new(value) if value.present?
       elsif type <= Hash
