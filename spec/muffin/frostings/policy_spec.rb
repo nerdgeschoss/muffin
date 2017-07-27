@@ -47,6 +47,7 @@ RSpec.describe Muffin::Policy do
   context "with a value policy" do
     class ValuePolicyForm < Muffin::Base
       attribute :role, permitted_values: -> { scope == :admin ? ["user", "admin"] : ["user"] }
+      attribute :tags, String, array: true, permitted_values: -> { ["foo", "bar"] }
     end
 
     it "raises on non permitted values" do
@@ -69,6 +70,14 @@ RSpec.describe Muffin::Policy do
     it "knows about permitted values" do
       expect(ValuePolicyForm.new.permitted_values(:role)).to eq ["user"]
       expect(ValuePolicyForm.new(scope: :admin).permitted_values(:role)).to eq ["user", "admin"]
+    end
+
+    it "handles permitted values for array types" do
+      expect { ValuePolicyForm.new(params: { tags: ["foo"] }) }.not_to raise_error
+      expect { ValuePolicyForm.new(params: { tags: ["bar"] }) }.not_to raise_error
+      expect { ValuePolicyForm.new(params: { tags: ["foo", "bar"] }) }.not_to raise_error
+      expect { ValuePolicyForm.new(params: { tags: ["muff"] }) }.to raise_error Muffin::NotPermittedError
+      expect { ValuePolicyForm.new(params: { tags: ["foo", "muff"] }) }.to raise_error Muffin::NotPermittedError
     end
   end
 end

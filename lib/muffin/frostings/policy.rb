@@ -40,9 +40,8 @@ module Muffin
     end
 
     def attribute_value_permitted?(name, value)
-      block = self.class.attributes[name]&.permitted_values
-      return true unless block
-      instance_exec(&block).include? value
+      return true if permitted_values(name).nil?
+      Array.wrap(value).all? { |e| permitted_values(name).include? e }
     end
 
     def self.included(base)
