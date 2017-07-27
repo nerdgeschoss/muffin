@@ -47,4 +47,23 @@ RSpec.describe Muffin::Execution do
       expect(form.performed).to eq true
     end
   end
+
+  context "without a perform block" do
+    class NoPerformForm < Muffin::Base
+      attribute :name
+      validates :name, presence: true
+    end
+
+    it "returns true on call if valid" do
+      expect(NoPerformForm.new(params: { name: "Klaus" }).call).to be true
+    end
+
+    it "returns false on call if invalid" do
+      expect(NoPerformForm.new.call).to be false
+    end
+
+    it "raises if invalid" do
+      expect { NoPerformForm.new.call! }.to raise_error(ActiveModel::ValidationError)
+    end
+  end
 end

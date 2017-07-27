@@ -4,6 +4,7 @@ module Muffin
       return false unless valid?
       permit!
       perform if respond_to? :perform
+      true
     end
 
     def call!
