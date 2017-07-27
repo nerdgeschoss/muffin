@@ -73,7 +73,7 @@ RSpec.describe Muffin::Rails::ControllerAdditions do
             let(:operation) do
               Class.new(mock_operation) do
                 def self.model_name
-                  "BookCover"
+                  ActiveModel::Name.new(nil, nil, "BookCover")
                 end
               end
             end

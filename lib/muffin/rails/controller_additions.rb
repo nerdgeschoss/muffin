@@ -5,8 +5,8 @@ module Muffin
     module ControllerAdditions
       def prepare(operation, params: nil, request: nil, scope: nil)
         if params.blank? && respond_to?(:params) && operation.respond_to?(:model_name)
-          if self.params.key?(operation.model_name.underscore)
-            params = self.params[operation.model_name.underscore].deep_dup.permit!.to_h
+          if self.params.key?(operation.model_name.param_key)
+            params = self.params[operation.model_name.param_key].deep_dup.permit!.to_h
             params.deep_transform_keys! do |key|
               if key.to_s[/.+_attributes\Z/]
                 new_key = key.to_s.sub(/_attributes\Z/, "")
