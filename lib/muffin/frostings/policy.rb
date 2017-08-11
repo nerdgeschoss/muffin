@@ -29,7 +29,7 @@ module Muffin
       return false unless attribute_permitted?(name)
       permitted = attribute_value_permitted?(name, value)
       return false if value == nil && !permitted
-      raise NotPermittedError unless permitted
+      raise NotPermittedError.new("Setting #{name} with #{value} is not permitted!") unless permitted
       true
     end
 

@@ -6,6 +6,7 @@ require_relative "frostings/sync"
 
 module Muffin
   class Base
+    extend ActiveModel::Callbacks
     include ActiveModel::Conversion
     include ActiveModel::Naming
     include Attributes
@@ -16,14 +17,19 @@ module Muffin
 
     attr_reader :request, :params, :scope
 
+    define_model_callbacks :initialize
+
     validates_with Muffin::Validation::NestedAttributesValidator
 
     def initialize(request: nil, params: nil, scope: nil)
-      @request = request
-      @params = params || {}
-      @scope = scope
+      run_callbacks :initialize do
+        @request = request
+        @params = params || {}
+        @scope = scope
 
-      assign_attributes
+        assign_attributes
+        true # after callbacks seem not to be invoked if the result is falsy
+      end
     end
   end
 end

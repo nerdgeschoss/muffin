@@ -6,9 +6,9 @@ require_relative "validation"
 module Muffin
   module Attributes
     module ClassMethods
-      def attribute(name, type = String, default: nil, array: nil, permit: nil, permitted_values: nil, &block)
+      def attribute(name, type = String, default: nil, array: nil, permit: nil, permitted_values: nil, coerce: nil, &block)
         type = define_class name, block if block
-        attributes[name] = Muffin::Attribute.new name: name, type: type, default: default, array: array, permit: permit, permitted_values: permitted_values, block: block
+        attributes[name] = Muffin::Attribute.new name: name, type: type, default: default, array: array, permit: permit, permitted_values: permitted_values, coerce: coerce, block: block
         define_method name do
           attributes && attributes[name]
         end
@@ -21,6 +21,8 @@ module Muffin
 
       def attributes
         @attributes ||= {}
+        superclass <= Muffin::Base ? @attributes.merge!(superclass.attributes) : @attributes
+        @attributes
       end
 
       def introspect(name)
@@ -41,8 +43,9 @@ module Muffin
     attr_reader :attributes
 
     def attributes=(value)
-      self.class.attributes.keys.map { |e| [e, nil] }.to_h.merge(value.to_h).each do |k, v|
-        send("#{k}=", v) if self.class.attributes[k.to_sym]
+      HashWithIndifferentAccess.new(self.class.attributes.keys.map { |e| [e, nil] }.to_h).merge(value.to_h).each do |k, v|
+        setter_name = "#{k}="
+        send(setter_name, v) if self.class.attributes[k.to_sym] && respond_to?(setter_name) # for nested forms we don't have setters on the base form
       end
     end
 

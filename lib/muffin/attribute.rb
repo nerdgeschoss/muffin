@@ -1,6 +1,6 @@
 module Muffin
   class Attribute
-    def initialize(name:, type:, array:, default:, permit:, permitted_values:, block:)
+    def initialize(name:, type:, array:, default:, permit:, permitted_values:, coerce:, block:)
       array = true if array == nil && (type&.is_a?(Array) || block)
       array ||= false
       type = type.first if type&.is_a? Array
@@ -10,16 +10,18 @@ module Muffin
       @default = default
       @permit = permit
       @permitted_values = permitted_values
+      @coerce = coerce
     end
 
-    attr_reader :name, :type, :default, :permit, :permitted_values
+    attr_reader :name, :type, :default, :permit, :permitted_values, :coerce
 
     def array?
       @array
     end
 
     def coercise(value)
-      convert value
+      # the benefit of having @coerce here instead of in #convert is that the whole convert magic (like arrays) works as is
+      convert coerce.respond_to?(:call) ? coerce.call(value) : value
     end
 
     private
@@ -27,7 +29,7 @@ module Muffin
     def convert(value, access_array: false)
       return convert(default) if value == nil && default
       return (value || []).map { |e| convert(e, access_array: true) } if array? && !access_array
-      return value.deep_dup if value.is_a? type
+      return value if value.is_a? type # do not coerce if type matches; do not deep dup else AR instances do not match (e.g. for permitted values)
       return value if value.nil?
 
       if type <= DateTime
