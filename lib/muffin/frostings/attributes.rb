@@ -33,7 +33,7 @@ module Muffin
 
       def define_class(name, block)
         class_name = name.to_s.split("_").map(&:capitalize).join
-        return const_get class_name if const_defined? class_name
+        return const_get class_name if self.constants.include? class_name.to_sym # const_defined? class_name goes through the hierarchy, including Object
         klass = const_set class_name, Class.new(Muffin::NestedAttribute)
         klass.instance_eval(&block)
         klass
