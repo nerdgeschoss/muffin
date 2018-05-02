@@ -102,11 +102,14 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "has type coercision for date_time" do
+      Time.zone = "Europe/Berlin"
       expect(SimpleForm.new(params: { date_time: "2001-02-03T04:05:06" }).date_time).to be_a DateTime
-      expect(SimpleForm.new(params: { date_time: "2001-02-03T04:05:06" }).date_time).to eq DateTime.parse("2001-02-03T04:05:06")
+      expect(SimpleForm.new(params: { date_time: "2001-02-03T04:05:06" }).date_time).to eq DateTime.parse("2001-02-03T04:05:06+01:00")
+      expect(SimpleForm.new(params: { date_time: "2001-02-03T04:05:06+02:00" }).date_time).to eq "2001-02-03T04:05:06+02:00".to_datetime
       expect(SimpleForm.new(params: { date_time: nil }).date_time).to eq nil
       expect(SimpleForm.new(params: { date_time: "" }).date_time).to eq nil
       expect(SimpleForm.new(params: { date_time: DateTime.parse("2001-02-03T04:05:06") }).date_time).to be_a DateTime
+      expect(SimpleForm.new(params: { date_time: DateTime.parse("2001-02-03T04:05:06+01:00") }).date_time).to eq "2001-02-03T04:05:06+01:00".to_datetime
     end
 
     it "has type coercision for time" do

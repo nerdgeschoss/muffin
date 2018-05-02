@@ -31,7 +31,7 @@ module Muffin
       return value if value.nil?
 
       if type <= DateTime
-        DateTime.parse(value).in_time_zone if value.present?
+        value.to_s.in_time_zone(Time.zone).to_datetime if value.present?
       elsif type <= Date # needs to come *after* DateTime because DateTime <= Date
         Date.parse(value) if value.present?
       elsif type <= Integer
