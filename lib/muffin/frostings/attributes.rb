@@ -27,6 +27,10 @@ module Muffin
         attributes[name]
       end
 
+      def reflect_on_association(name)
+        OpenStruct.new klass: attributes[name].type
+      end
+
       private
 
       def define_class(name, block)
@@ -74,7 +78,7 @@ module Muffin
 
     validates_with Muffin::Validation::NestedAttributesValidator
 
-    def initialize(attributes)
+    def initialize(attributes = {})
       self.attributes = attributes
     end
   end

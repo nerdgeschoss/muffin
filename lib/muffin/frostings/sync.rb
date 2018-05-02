@@ -2,7 +2,7 @@ module Muffin
   module Sync
     private
 
-    def update_nested!(relation, entities = [self])
+    def update_nested!(relation, entities = [self], synced_attributes: nil)
       entities = Array.wrap(entities)
 
       # load all (available) records upfront to avoid fetching them one by one in the loop
@@ -26,14 +26,16 @@ module Muffin
         if entity.try(:id).presence
           record = records[entity.id]
 
-          if entity.try(:_destroy).presence
+          if entity.try(:_destroy)
             record.destroy
           else
-            record.assign_attributes(model_attributes)
-            record.save! if record.changed?
+            record.assign_attributes(model_attributes.slice(*(synced_attributes || record.attributes.keys.map(&:to_sym))))
+            record.save!
           end
         else
-          record = relation.create!(model_attributes)
+          record = relation.build
+          record.assign_attributes(model_attributes.slice(*(synced_attributes || record.attributes.keys.map(&:to_sym))))
+          record.save!
         end
 
         association_attributes.each do |k, v|
