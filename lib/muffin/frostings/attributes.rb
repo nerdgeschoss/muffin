@@ -6,16 +6,17 @@ require_relative "validation"
 module Muffin
   module Attributes
     module ClassMethods
-      def attribute(name, type = String, default: nil, array: nil, permit: nil, permitted_values: nil, &block)
-        type = define_class name, block if block
+      def attribute(name, type = :string, default: nil, array: nil, permit: nil, permitted_values: nil, &block)
+        if block
+          type_class = define_class name, block
+          type = ->(value) { type_class.new(value && value.to_h) }
+        end
         attributes[name] = Muffin::Attribute.new name: name, type: type, default: default, array: array, permit: permit, permitted_values: permitted_values, block: block
         define_method name do
-          attributes && attributes[name]
+          instance_variable_get "@#{name}"
         end
         define_method "#{name}=" do |value|
-          @attributes ||= {}
-          value = self.class.attributes[name].coercise(value)
-          attributes[name] = value if permit_attribute!(name, value)
+          instance_variable_set "@#{name}", self.class.attributes[name].coercise(value.nil? ? default : value) if permit_attribute!(name, value)
         end
       end
 
@@ -50,8 +51,22 @@ module Muffin
       end
     end
 
+    def attributes
+      self.class.attributes.keys.select { |e| attribute_permitted?(e) }.map do |key|
+        [key, public_send(key)]
+      end.to_h
+    end
+
     def assign_attributes
-      self.attributes = params
+      params.each do |key, value|
+        public_send("#{key}=", value) if self.class.attributes[key.to_sym]
+      end
+    end
+
+    def assign_defaults
+      self.class.attributes.values.reject { |e| e.default.nil? }.map do |attribute|
+        public_send("#{attribute.name}=", attribute.default) if public_send(attribute.name).nil?
+      end
     end
 
     def self.included(base)
@@ -59,7 +74,7 @@ module Muffin
     end
 
     def persisted?
-      attributes[:id].present?
+      try(:id).present?
     end
 
     # fields_for checks wether an object responds to [foo_attributes=]

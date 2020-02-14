@@ -21,11 +21,21 @@ Attributes specify which attribute in the form can be set via a request
 ```ruby
 class MyForm < Muffin::Base
   attribute :name # type String is implicit
-  attribute :age, Integer # second argument defines type if present
-  attribute :accepted?, Boolean # boolean is defined for true or false, converts strings like "on" or "off" (from forms) automatically to their boolean value
+  attribute :age, :integer # second argument defines type if present
+  attribute :accepted?, :boolean # boolean is defined for true or false, converts strings like "on" or "off" (from forms) automatically to their boolean value
   attribute :tags, array: true # array of strings
-  attribute :tags, [String] # same as above
+  attribute :tags, [:string] # same as above
+  attribute :scream, ->(value) { value&.upcase } # define a coercision block
+  attribute :address, Address::Type # any class that has a `deserialize` method, e.g. ActiveRecord::Type instances
+  attribute :my_model, :any # opts out of type coercion
 end
+```
+
+Forms automatically coerce types into the given type (it is using the same methods as
+`ActiveRecord` parameters under the hood). You can also register your custom classes with
+
+```ruby
+Muffin::Attribute.register_type :address, Address::Type
 ```
 
 Forms can contain validations
@@ -54,7 +64,7 @@ my_form.attributes # { name: "Superman" }
 
 ## Performing Changes
 
-When `call` is invoked, the form performs validation steps. If those steps are successful, `perform` is called. `perform` is invoked inside of a transaction.
+When `call` is invoked, the form performs validation steps. If those steps are successful, `perform` is called.
 
 ```ruby
 class MyForm < Muffin::Base
@@ -81,7 +91,7 @@ class WishlistForm < Muffin::Base
   end
 end
 
-WishlistForm.new(params: { children_name: "Klaus", wishes: [{ name: "some cookies}])
+WishlistForm.new(params: { children_name: "Klaus", wishes: [{ name: "some cookies"}])
 ```
 
 ## Manually assigning parameters
@@ -100,7 +110,7 @@ end
 MyForm.new(params: { name: "Klaus" }).name # "klaus"
 ```
 
-## Creating / updating active record objects
+## Creating / updating `ActiveRecord` objects
 
 In the most simple case of a form mapping 1:1 to an active record object, the form object should be as simple as possible:
 
@@ -110,14 +120,10 @@ class Object < ActiveRecord::Base
 end
 
 class ObjectUpdateForm < Muffin::Base
-  attribute :id
   attribute :name
+  attribute :model, :any
 
   validates :name, presence: true
-
-  def model
-    @model ||= Object.find(params[:id])
-  end
 
   private
 
@@ -131,11 +137,32 @@ class ObjectUpdateForm < Muffin::Base
   end
 end
 
-Post.first.name # "My Post" from Post 1
-form = ObjectUpdateForm.new(params: { id: 1, name: "Updated Post" })
+model = Post.first
+model.name # "My Post" from Post 1
+form = ObjectUpdateForm.new(params: { model: model, name: "Updated Post" })
 form.call
-Post.first.name # "Updated Post"
+model.name # "Updated Post"
 ```
+
+Need something with less code? Inherit from `Muffin::Mutation` and you get model attribute
+assignment for free:
+
+```ruby
+class ObjectUpdateForm < Muffin::Mutation
+  attribute :name
+  validates :name, presence: true
+end
+
+model = Post.first
+model.name # "My Post" from Post 1
+form = ObjectUpdateForm.new(model: model, params: { name: "Updated Post" })
+form.call
+model.name
+```
+A mutation will first assign its attributes from the model, then overwrite them with params and has
+a default implementation for `perform`. Feel free to override `assign_model` and `perform`. The
+default implementation assumes that your model class has getters and setters for its attributes
+and a `safe!` method (so it is not dependent on `ActiveRecord`).
 
 ## Updating nested active record objects
 
@@ -149,10 +176,10 @@ class Comment < ActiveRecord::Base
 end
 
 class MyForm < Muffin::Base
-  attribute :id, Integer
+  attribute :id, :integer
   attribute :comments do
-    attribute :id, Integer
-    attribute :_destroy, Boolean
+    attribute :id, :integer
+    attribute :_destroy, :boolean
     attribute :text
   end
 
@@ -249,7 +276,7 @@ Form objects work with Rails' form helpers automatically.
 class SurveyForm < Form
   attribute :email
   attribute :answers do
-    attribute :question_id, Integer
+    attribute :question_id, :integer
     attribute :answer
 
     validates :answer, presence: true

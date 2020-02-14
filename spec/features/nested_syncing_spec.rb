@@ -36,17 +36,17 @@ RSpec.describe "Nested syncing" do
     end
 
     class UserForm < Muffin::Base
-      attribute :id, Integer
-      attribute :first_name, String
-      attribute :last_name, String
+      attribute :id, :integer
+      attribute :first_name
+      attribute :last_name
       attribute :comments do
-        attribute :id, Integer
-        attribute :text, String
-        attribute :_destroy, Muffin::Boolean
+        attribute :id, :integer
+        attribute :text
+        attribute :_destroy, :boolean
         attribute :tags do
-          attribute :id, Integer
-          attribute :label, String
-          attribute :_destroy, Muffin::Boolean
+          attribute :id, :integer
+          attribute :label
+          attribute :_destroy, :boolean
         end
       end
 

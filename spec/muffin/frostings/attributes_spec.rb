@@ -1,36 +1,43 @@
 RSpec.describe Muffin::Attributes do
   context "with a simple form" do
+
     class Nested
       attr_accessor :name
 
       def initialize(name: nil)
         self.name = name
       end
+
+      class Type
+        def deserialize(value)
+          value && Nested.new(value)
+        end
+      end
     end
 
     class SimpleForm < Muffin::Base
-      attribute :count, Integer
-      attribute :amount, Float
-      attribute :name, String
+      attribute :count, :integer
+      attribute :amount, :float
+      attribute :name, :string
       attribute :description
-      attribute :accepted?, Boolean
+      attribute :accepted, :boolean
       attribute :with_default, default: "standard"
       attribute :tags, array: true
-      attribute :categories, [String]
-      attribute :nested, Nested
-      attribute :total, BigDecimal
-      attribute :symbol, Symbol
-      attribute :hash, Hash
-      attribute :date, Date
-      attribute :date_time, DateTime
-      attribute :time, Time
+      attribute :categories, [:string]
+      attribute :nested, Nested::Type
+      attribute :total, :decimal
+      attribute :symbol, :symbol
+      attribute :hash, :hash
+      attribute :date, :date
+      attribute :date_time, :datetime
+      attribute :model, :any
     end
 
     it "has type coercision for integers" do
       expect(SimpleForm.new(params: { count: "5" }).count).to be_an Integer
       expect(SimpleForm.new(params: { count: "5" }).count).to eq 5
       expect(SimpleForm.new(params: { count: nil }).count).to be_nil
-      expect(SimpleForm.new(params: { count: "" }).count).to eq 0
+      expect(SimpleForm.new(params: { count: "" }).count).to eq nil
       expect(SimpleForm.new(params: { count: "z" }).count).to eq 0
       expect(SimpleForm.new(params: { count: "15z" }).count).to eq 15
       expect(SimpleForm.new(params: { count: 5 }).count).to eq 5
@@ -56,28 +63,29 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "has type coercision for booleans" do
-      expect(SimpleForm.new(params: { accepted?: true }).accepted?).to eq true
-      expect(SimpleForm.new(params: { accepted?: "true" }).accepted?).to eq true
-      expect(SimpleForm.new(params: { accepted?: "1" }).accepted?).to eq true
-      expect(SimpleForm.new(params: { accepted?: "0" }).accepted?).to eq false
-      expect(SimpleForm.new(params: { accepted?: "false" }).accepted?).to eq false
-      expect(SimpleForm.new(params: { accepted?: false }).accepted?).to eq false
-      expect(SimpleForm.new(params: { accepted?: nil }).accepted?).to eq nil
+      expect(SimpleForm.new(params: { accepted: true }).accepted).to eq true
+      expect(SimpleForm.new(params: { accepted: "true" }).accepted).to eq true
+      expect(SimpleForm.new(params: { accepted: "1" }).accepted).to eq true
+      expect(SimpleForm.new(params: { accepted: "0" }).accepted).to eq false
+      expect(SimpleForm.new(params: { accepted: "false" }).accepted).to eq false
+      expect(SimpleForm.new(params: { accepted: false }).accepted).to eq false
+      expect(SimpleForm.new(params: { accepted: nil }).accepted).to eq nil
     end
 
     it "has type coercision for value classes" do
+      expect(SimpleForm.new(params: {}).nested).to be_nil
       expect(SimpleForm.new(params: { nested: { name: "Klaus" } }).nested).to be_a Nested
       expect(SimpleForm.new(params: { nested: { name: "Klaus" } }).nested.name).to eq "Klaus"
     end
 
     it "has type coercision for big decimals" do
       expect(SimpleForm.new(params: { total: "5" }).total).to be_an BigDecimal
-      expect(SimpleForm.new(params: { total: "5" }).total).to eq(BigDecimal.new(5))
+      expect(SimpleForm.new(params: { total: "5" }).total).to eq(BigDecimal(5))
       expect(SimpleForm.new(params: { total: nil }).total).to be_nil
       expect(SimpleForm.new(params: { total: "" }).total).to be_nil
-      expect(SimpleForm.new(params: { count: "z" }).count).to eq(BigDecimal.new(0))
-      expect(SimpleForm.new(params: { count: "5z" }).count).to eq(BigDecimal.new(5))
-      expect(SimpleForm.new(params: { count: 5 }).count).to eq(BigDecimal.new(5))
+      expect(SimpleForm.new(params: { count: "z" }).count).to eq(BigDecimal(0))
+      expect(SimpleForm.new(params: { count: "5z" }).count).to eq(BigDecimal(5))
+      expect(SimpleForm.new(params: { count: 5 }).count).to eq(BigDecimal(5))
     end
 
     it "has type coercision for symbols" do
@@ -112,12 +120,9 @@ RSpec.describe Muffin::Attributes do
       expect(SimpleForm.new(params: { date_time: DateTime.parse("2001-02-03T04:05:06+01:00") }).date_time).to eq "2001-02-03T04:05:06+01:00".to_datetime
     end
 
-    it "has type coercision for time" do
-      expect(SimpleForm.new(params: { time: "2001-02-03T04:05:06" }).time).to be_a Time
-      expect(SimpleForm.new(params: { time: "2001-02-03T04:05:06" }).time).to eq Time.parse("2001-02-03T04:05:06")
-      expect(SimpleForm.new(params: { time: nil }).time).to eq nil
-      expect(SimpleForm.new(params: { time: "" }).time).to eq nil
-      expect(SimpleForm.new(params: { time: Time.parse("2001-02-03T04:05:06") }).time).to be_a Time
+    it "ignores types for any" do
+      expect(SimpleForm.new(params: { model: 5 }).model).to eq 5
+      expect(SimpleForm.new(params: { model: DateTime.current }).model).to be_a DateTime
     end
 
     it "respects defaults" do
@@ -154,9 +159,9 @@ RSpec.describe Muffin::Attributes do
       expect(SimpleForm.introspect(:tags).array?).to eq true
       expect(SimpleForm.introspect(:categories).array?).to eq true
       expect(SimpleForm.introspect(:with_default).default).to eq "standard"
-      expect(SimpleForm.introspect(:name).type).to eq String
-      expect(SimpleForm.introspect(:description).type).to eq String
-      expect(SimpleForm.introspect(:nested).type).to eq Nested
+      expect(SimpleForm.introspect(:name).type).to eq :string
+      expect(SimpleForm.introspect(:description).type).to eq :string
+      expect(SimpleForm.introspect(:nested).type).to eq Nested::Type
     end
 
     it "discards unknown params without raising an error" do
@@ -194,7 +199,7 @@ RSpec.describe Muffin::Attributes do
     class NestedForm < Muffin::Base
       attribute :children, default: [{ name: "Klaus" }] do
         attribute :name
-        attribute :age, Integer
+        attribute :age, :integer
       end
     end
 
@@ -203,7 +208,7 @@ RSpec.describe Muffin::Attributes do
     end
 
     it "creates subclasses for nested attributes" do
-      expect(NestedForm::Children.introspect(:age).type).to eq Integer
+      expect(NestedForm::Children.introspect(:age).type).to eq :integer
     end
 
     it "assigns nested values" do

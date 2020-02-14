@@ -3,14 +3,14 @@ require "active_record"
 RSpec.describe "Nested validations" do
   before(:all) do
     class UserForm < Muffin::Base
-      attribute :name, String
+      attribute :name
 
       attribute :comments do
-        attribute :text, String
+        attribute :text
         validates :text, presence: true
 
         attribute :tags do
-          attribute :label, String
+          attribute :label
           validates :label, presence: true
         end
       end

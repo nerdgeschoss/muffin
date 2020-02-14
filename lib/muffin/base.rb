@@ -24,6 +24,7 @@ module Muffin
       @scope = scope
 
       assign_attributes
+      assign_defaults
     end
   end
 end

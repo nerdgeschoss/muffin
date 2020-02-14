@@ -1,5 +1,38 @@
+require_relative "./types/any"
+require_relative "./types/date_time"
+require_relative "./types/hash"
+require_relative "./types/symbol"
+
 module Muffin
   class Attribute
+    class << self
+      def default_types
+        {
+          any: Muffin::Type::Any,
+          binary: ActiveRecord::Type::Binary,
+          boolean: ActiveRecord::Type::Boolean,
+          date: ActiveRecord::Type::Date,
+          datetime: Muffin::Type::DateTime,
+          decimal: ActiveRecord::Type::Decimal,
+          float: ActiveRecord::Type::Float,
+          hash: Muffin::Type::Hash,
+          integer: ActiveRecord::Type::Integer,
+          string: ActiveRecord::Type::String,
+          symbol: Muffin::Type::Symbol,
+        }
+      end
+
+      def register_type(name, type)
+        @types ||= default_types
+        @types[name] = type
+      end
+
+      def lookup_type(name)
+        @types ||= default_types
+        @types[name]&.new
+      end
+    end
+
     def initialize(name:, type:, array:, default:, permit:, permitted_values:, block:)
       array = true if array == nil && (type&.is_a?(Array) || block)
       array ||= false
@@ -24,35 +57,18 @@ module Muffin
 
     private
 
+    def lookup(type)
+      return type if type.respond_to? :call
+      serializer = type.new if type.respond_to?(:new)
+      return serializer if serializer.respond_to?(:deserialize)
+      self.class.lookup_type(type) || raise(StandardError, "Unknown type #{type} for #{name}")
+    end
+
     def convert(value, access_array: false)
       return convert(default) if value == nil && default
       return (value || []).map { |e| convert(e, access_array: true) } if array? && !access_array
-      return value.deep_dup if value.is_a? type
-      return value if value.nil?
-
-      if type <= DateTime
-        value.to_s.in_time_zone(Time.zone).to_datetime if value.present?
-      elsif type <= Date # needs to come *after* DateTime because DateTime <= Date
-        Date.parse(value) if value.present?
-      elsif type <= Integer
-        value&.to_i
-      elsif type <= Float
-        value&.to_f
-      elsif type <= String
-        value&.to_s
-      elsif type <= Symbol
-        value.class <= Integer ? value.to_s.to_sym : value&.to_sym
-      elsif type <= Time
-        Time.parse(value).in_time_zone if value.present?
-      elsif type <= BigDecimal
-        type.new(value) if value.present?
-      elsif type <= Hash
-        type.new.merge!(value&.to_h&.deep_dup) if value.present?
-      elsif type <= Muffin::Boolean
-        type.new(value).to_bool
-      else
-        type.new(value || {})
-      end
+      deserializer = lookup(type)
+      deserializer.respond_to?(:call) ? deserializer.call(value) : deserializer.deserialize(value)
     end
   end
 end

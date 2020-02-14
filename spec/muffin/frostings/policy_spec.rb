@@ -47,7 +47,7 @@ RSpec.describe Muffin::Policy do
   context "with a value policy" do
     class ValuePolicyForm < Muffin::Base
       attribute :role, permitted_values: -> { scope == :admin ? ["user", "admin"] : ["user"] }
-      attribute :tags, String, array: true, permitted_values: -> { ["foo", "bar"] }
+      attribute :tags, :string, array: true, permitted_values: -> { ["foo", "bar"] }
     end
 
     it "raises on non permitted values" do

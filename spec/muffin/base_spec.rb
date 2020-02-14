@@ -3,21 +3,21 @@ RSpec.describe Muffin::Base do
 
   let(:operation_class) do
     Class.new(Muffin::Base) do
-      attribute :id, Integer
-      attribute :first_name, String
+      attribute :id, :integer
+      attribute :first_name
 
       attribute :address, array: false do
-        attribute :street_name, String
-        attribute :street_number, String
+        attribute :street_name
+        attribute :street_number
         attribute :phone, array: false do
-          attribute :pre, String
-          attribute :num, String
+          attribute :pre
+          attribute :num
         end
       end
 
       attribute :tags, array: true do
-        attribute :id, Integer
-        attribute :label, String
+        attribute :id, :integer
+        attribute :label
       end
 
       def self.name # because this is an anonymous class

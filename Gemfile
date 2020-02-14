@@ -4,7 +4,6 @@ source "https://rubygems.org"
 gemspec
 
 group :development, :test do
-  gem "activerecord"
   gem "bundler"
   gem "guard-rspec"
   gem "rails"
