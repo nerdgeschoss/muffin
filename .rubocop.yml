@@ -1,67 +1,40 @@
-AllCops:
-  TargetRubyVersion: 2.4
-  DisplayCopNames: true
-  DisplayStyleGuide: true
-
 require:
   - rubocop/rspec/focused
 
+AllCops:
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  TargetRubyVersion: 2.4
+
+Layout/LineLength:
+  Enabled: false
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
 Metrics:
   Enabled: false
-
 RSpec/Focused:
   Enabled: true
-
-Style/AlignParameters:
-  EnforcedStyle: with_fixed_indentation
-
-Style/ConditionalAssignment:
-  Enabled: false
-
 Style/Documentation:
   Enabled: false
-
 Style/DoubleNegation:
   Enabled: false
-
 Style/EmptyMethod:
   EnforcedStyle: expanded
-
 Style/FrozenStringLiteralComment:
   Enabled: false
-
-Style/Lambda:
-  Enabled: false
-
-Style/MethodMissing:
-  Enabled: false
-
-Style/MultilineMethodCallIndentation:
-  EnforcedStyle: indented
-
-Style/NilComparison:
-  Enabled: false
-
-Style/NumericLiterals:
-  MinDigits: 15
-
-Style/NumericPredicate:
-  Enabled: false
-
-Style/WordArray:
-  EnforcedStyle: brackets
-
-Style/SymbolArray:
-  EnforcedStyle: brackets
-
 Style/Lambda:
   EnforcedStyle: literal
-
+Style/NilComparison:
+  Enabled: false
+Style/NumericLiterals:
+  MinDigits: 15
+Style/NumericPredicate:
+  Enabled: false
 Style/RegexpLiteral:
   Enabled: false
-
 Style/StringLiterals:
   EnforcedStyle: double_quotes
-
+Style/SymbolArray:
+  EnforcedStyle: brackets
 Style/WordArray:
-  Enabled: false
+  EnforcedStyle: brackets

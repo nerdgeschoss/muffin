@@ -20,7 +20,8 @@ RSpec.describe Muffin::Base do
         attribute :label
       end
 
-      def self.name # because this is an anonymous class
+      # because this is an anonymous class
+      def self.name
         "UpdateUser"
       end
     end

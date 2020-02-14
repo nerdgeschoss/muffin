@@ -16,31 +16,37 @@ module Muffin
 
     def permitted?
       return true unless self.class.permission_block
+
       instance_eval(&self.class.permission_block)
     end
 
     def attribute_permitted?(name)
       block = self.class.attributes[name]&.permit
       return instance_exec(&block) if block
+
       true
     end
 
     def permit_attribute!(name, value)
       return false unless attribute_permitted?(name)
+
       permitted = attribute_value_permitted?(name, value)
       return false if value == nil && !permitted
       raise NotPermittedError unless permitted
+
       true
     end
 
     def permitted_values(name)
       block = self.class.attributes[name]&.permitted_values
       return instance_exec(&block) if block
+
       nil
     end
 
     def attribute_value_permitted?(name, value)
       return true if permitted_values(name).nil?
+
       Array.wrap(value).all? { |e| permitted_values(name).include? e }
     end
 

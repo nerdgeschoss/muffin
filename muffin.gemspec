@@ -1,6 +1,4 @@
-# coding: utf-8
-
-lib = File.expand_path("../lib", __FILE__)
+lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "muffin/version"
 
@@ -21,6 +19,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activemodel"
-  spec.add_dependency "activesupport"
   spec.add_dependency "activerecord"
+  spec.add_dependency "activesupport"
 end

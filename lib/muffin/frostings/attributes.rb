@@ -9,14 +9,16 @@ module Muffin
       def attribute(name, type = :string, default: nil, array: nil, permit: nil, permitted_values: nil, &block)
         if block
           type_class = define_class name, block
-          type = ->(value) { type_class.new(value && value.to_h) }
+          type = ->(value) { type_class.new(value&.to_h) }
         end
         attributes[name] = Muffin::Attribute.new name: name, type: type, default: default, array: array, permit: permit, permitted_values: permitted_values, block: block
         define_method name do
           instance_variable_get "@#{name}"
         end
         define_method "#{name}=" do |value|
-          instance_variable_set "@#{name}", self.class.attributes[name].coercise(value.nil? ? default : value) if permit_attribute!(name, value)
+          if permit_attribute!(name, value)
+            instance_variable_set "@#{name}", self.class.attributes[name].coercise(value.nil? ? default : value)
+          end
         end
       end
 
@@ -37,6 +39,7 @@ module Muffin
       def define_class(name, block)
         class_name = name.to_s.split("_").map(&:capitalize).join
         return const_get class_name if const_defined? class_name
+
         klass = const_set class_name, Class.new(Muffin::NestedAttribute)
         klass.instance_eval(&block)
         klass
@@ -51,7 +54,7 @@ module Muffin
       end
     end
 
-    def attributes
+    def attributes # rubocop:disable Lint/DuplicateMethods false positive because of class methods
       self.class.attributes.keys.select { |e| attribute_permitted?(e) }.map do |key|
         [key, public_send(key)]
       end.to_h
@@ -80,6 +83,7 @@ module Muffin
     # fields_for checks wether an object responds to [foo_attributes=]
     def respond_to_missing?(method_name, include_private = false)
       return true if method_name.to_s[/_attributes=\Z/]
+
       super
     end
 

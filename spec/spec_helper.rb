@@ -12,7 +12,7 @@ if RUBY_ENGINE == "ruby"
   end
 end
 
-Dir[File.join(__dir__, "support", "**", "*.rb")].each do |f|
+Dir[File.join(__dir__, "support", "**", "*.rb")].sort.each do |f|
   require f
 end
 

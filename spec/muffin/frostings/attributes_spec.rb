@@ -1,6 +1,5 @@
 RSpec.describe Muffin::Attributes do
   context "with a simple form" do
-
     class Nested
       attr_accessor :name
 

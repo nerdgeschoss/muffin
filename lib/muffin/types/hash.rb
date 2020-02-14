@@ -3,6 +3,7 @@ module Muffin
     class Hash
       def deserialize(value)
         return JSON.parse(value) if value.is_a?(String)
+
         value&.to_h
       end
     end

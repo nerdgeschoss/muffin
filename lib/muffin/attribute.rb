@@ -18,7 +18,7 @@ module Muffin
           hash: Muffin::Type::Hash,
           integer: ActiveRecord::Type::Integer,
           string: ActiveRecord::Type::String,
-          symbol: Muffin::Type::Symbol,
+          symbol: Muffin::Type::Symbol
         }
       end
 
@@ -59,14 +59,17 @@ module Muffin
 
     def lookup(type)
       return type if type.respond_to? :call
+
       serializer = type.new if type.respond_to?(:new)
       return serializer if serializer.respond_to?(:deserialize)
+
       self.class.lookup_type(type) || raise(StandardError, "Unknown type #{type} for #{name}")
     end
 
     def convert(value, access_array: false)
       return convert(default) if value == nil && default
       return (value || []).map { |e| convert(e, access_array: true) } if array? && !access_array
+
       deserializer = lookup(type)
       deserializer.respond_to?(:call) ? deserializer.call(value) : deserializer.deserialize(value)
     end
